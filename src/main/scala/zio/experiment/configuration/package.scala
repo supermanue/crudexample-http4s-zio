@@ -1,4 +1,4 @@
-package com.bound.exercise
+package zio.experiment
 
 import pureconfig.ConfigSource
 import zio._

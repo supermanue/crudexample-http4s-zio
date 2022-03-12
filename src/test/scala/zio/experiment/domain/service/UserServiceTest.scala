@@ -1,14 +1,15 @@
-package com.bound.exercise.persistence
+package zio.experiment.domain.service
 
-import com.bound.exercise.User
+import zio.experiment.domain.model.User
+import zio.experiment.domain.service.UserService.{createUser, deleteUser, getUser}
 import zio.test.Assertion._
-import zio.test._
 import zio.test.environment.TestEnvironment
+import zio.test.{DefaultRunnableSpec, assert, assertM}
 
-object UserPersistenceTest extends DefaultRunnableSpec {
+object UserServiceTest extends DefaultRunnableSpec {
 
   def spec =
-    suite("Persistence unit test")(
+    suite("UserService unit test")(
       testM("get a non existing user should fail") {
         assertM(getUser(100).run)(fails(anything))
       },
@@ -26,5 +27,5 @@ object UserPersistenceTest extends DefaultRunnableSpec {
         } yield assert(deleted)(isRight(isTrue)) &&
           assert(notFound)(isLeft(anything))
       }
-    ).provideSomeLayer[TestEnvironment](Test.layer)
+    ).provideSomeLayer[TestEnvironment](TestDB.layer)
 }

@@ -1,9 +1,6 @@
-package com.bound.exercise
+package zio.experiment
 
 import cats.effect.{ExitCode => CatsExitCode}
-import com.bound.exercise.http.Api
-import com.bound.exercise.configuration.Configuration
-import com.bound.exercise.persistence.{DBTransactor, UserPersistence, UserPersistenceService}
 import org.http4s.implicits._
 import org.http4s.server.Router
 import org.http4s.server.blaze.BlazeServerBuilder
@@ -12,28 +9,34 @@ import zio._
 import zio.blocking.Blocking
 import zio.clock.Clock
 import zio.console.putStrLn
+import zio.experiment.adapters.{DBTransactor, DoobiePersistenceService}
+import zio.experiment.configuration.Configuration
+import zio.experiment.domain.port.UserPersistence
+import zio.experiment.http.Api
 import zio.interop.catz._
 
-object Main extends App {
+import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
 
+object Main extends App {
+  val ec: ExecutionContextExecutor = ExecutionContext.global
   type AppEnvironment = Configuration with Clock with DBTransactor with UserPersistence
 
   type AppTask[A] = RIO[AppEnvironment, A]
 
   val appEnvironment =
-    Configuration.live >+> Blocking.live >+> UserPersistenceService.transactorLive >+> UserPersistenceService.live
+    Configuration.live >+> Blocking.live >+> DoobiePersistenceService.transactorLive >+> DoobiePersistenceService.live
 
   override def run(args: List[String]): ZIO[ZEnv, Nothing, ExitCode] = {
     val program: ZIO[AppEnvironment, Throwable, Unit] =
       for {
-        _   <- UserPersistenceService.createUserTable
+        _   <- DoobiePersistenceService.createUserTable
         api <- configuration.apiConfig
         httpApp = Router[AppTask](
           "/" -> Api(s"${api.endpoint}/").route
         ).orNotFound
 
         server <- ZIO.runtime[AppEnvironment].flatMap { implicit rts =>
-          BlazeServerBuilder[AppTask]
+          BlazeServerBuilder[AppTask](ec)
             .bindHttp(api.port, api.endpoint)
             .withHttpApp(CORS(httpApp))
             .serve
