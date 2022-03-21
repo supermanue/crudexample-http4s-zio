@@ -1,6 +1,7 @@
 package zio.experiment.domain.service
 
-import zio.experiment.domain.model.{AppError, User, UserNotFound}
+import zio.experiment.domain.model.User.User
+import zio.experiment.domain.model.{AppError, UserNotFound}
 import zio.experiment.domain.port.{StoragePort, UserPersistence}
 import zio.{IO, Ref, Task, ZLayer}
 

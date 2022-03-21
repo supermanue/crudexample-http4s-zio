@@ -8,7 +8,8 @@ import zio._
 import zio.blocking.Blocking
 import zio.experiment.configuration
 import zio.experiment.configuration.DbConfig
-import zio.experiment.domain.model.{AppError, DBError, User, UserNotFound}
+import zio.experiment.domain.model.User.User
+import zio.experiment.domain.model.{AppError, DBError, UserNotFound}
 import zio.experiment.domain.port.{StoragePort, UserPersistence}
 import zio.interop.catz._
 

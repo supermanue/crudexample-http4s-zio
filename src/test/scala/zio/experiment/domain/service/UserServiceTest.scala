@@ -1,12 +1,14 @@
 package zio.experiment.domain.service
 
-import zio.experiment.domain.model.User
+import zio.experiment.domain.model.User.User
 import zio.experiment.domain.service.UserService.{createUser, deleteUser, getUser}
 import zio.test.Assertion._
 import zio.test.environment.TestEnvironment
 import zio.test.{DefaultRunnableSpec, assert, assertM}
 
 object UserServiceTest extends DefaultRunnableSpec {
+
+  val user = User(14, "usr").getOrElse(new Exception("this is a test and should have succeeded"))
 
   def spec =
     suite("UserService unit test")(
@@ -15,10 +17,10 @@ object UserServiceTest extends DefaultRunnableSpec {
       },
       testM("create a user then get it ") {
         for {
-          created <- createUser(User(14, "usr"))
+          created <- createUser(14, "usr")
           user    <- getUser(14)
-        } yield assert(created)(equalTo(User(14, "usr"))) &&
-          assert(user)(equalTo(User(14, "usr")))
+        } yield assert(created)(equalTo(user)) &&
+          assert(user)(equalTo(user))
       },
       testM("delete user") {
         for {

@@ -6,7 +6,7 @@ import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.{EntityDecoder, EntityEncoder, HttpRoutes}
 import zio._
-import zio.experiment.domain.model.{DBError, User, UserNotFound}
+import zio.experiment.domain.model.{DBError, UserNotFound}
 import zio.experiment.domain.port.UserPersistence
 import zio.experiment.domain.service.UserService
 import zio.interop.catz._
@@ -15,6 +15,8 @@ import zio.interop.catz._
 final case class Api[R <: UserPersistence](rootUri: String) {
 
   type UserTask[A] = RIO[R, A]
+
+  case class UserInput(id: Int, name: String) //TODO this is a bit weird here. Also id should be returned by Storage
 
   //TODO take this to a separate class
   implicit def circeJsonDecoder[A](implicit decoder: Decoder[A]): EntityDecoder[UserTask, A] = jsonOf[UserTask, A]
@@ -39,9 +41,9 @@ final case class Api[R <: UserPersistence](rootUri: String) {
             Ok(_)
           )
       case request @ POST -> Root =>
-        request.decode[User] { user =>
+        request.decode[UserInput] { userInput =>
           UserService
-            .createUser(user)
+            .createUser(userInput.id, userInput.name)
             .foldM(
               {
                 case error: DBError => ServiceUnavailable(error.message)

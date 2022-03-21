@@ -3,13 +3,16 @@ package zio.experiment.adapters
 import zio.Cause
 import zio.blocking.Blocking
 import zio.experiment.configuration.Configuration
-import zio.experiment.domain.model.{User, UserNotFound}
+import zio.experiment.domain.model.User.User
+import zio.experiment.domain.model.UserNotFound
 import zio.experiment.domain.service.UserService._
 import zio.test.Assertion._
 import zio.test._
 import zio.test.environment.TestEnvironment
 
 object DoobiePersistenceServiceTest extends DefaultRunnableSpec {
+
+  val user = User(14, "usr").getOrElse(new Exception("this is a test and should have succeeded"))
 
   def spec =
     suite("DoobiePersistenceService unit test")(testM("Persistence Live") {
@@ -18,10 +21,10 @@ object DoobiePersistenceServiceTest extends DefaultRunnableSpec {
         notFound <- getUser(
           100
         ).either //TODO these calls should be to persistenceService.get and so. Here we are mixing domain and adapters
-        created <- createUser(User(14, "usr")).either
+        created <- createUser(14, "usr").either
         deleted <- deleteUser(14).either
       } yield assert(notFound.swap.getOrElse(anything))(isSubtype[UserNotFound](anything)) &&
-        assert(created)(isRight(equalTo(User(14, "usr")))) &&
+        assert(created)(isRight(equalTo(user))) &&
         assert(deleted)(isRight(isTrue))
     }).provideSomeLayer[TestEnvironment](
       (Configuration.live >+> Blocking.live >+> DoobiePersistenceService.transactorLive >+> DoobiePersistenceService.live)

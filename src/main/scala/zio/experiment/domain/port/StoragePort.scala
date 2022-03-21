@@ -1,6 +1,7 @@
 package zio.experiment.domain.port
 
-import zio.experiment.domain.model.{AppError, User}
+import zio.experiment.domain.model.AppError
+import zio.experiment.domain.model.User.User
 import zio.{IO, Task}
 
 trait StoragePort {
