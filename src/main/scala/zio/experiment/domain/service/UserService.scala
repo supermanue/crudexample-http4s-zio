@@ -9,7 +9,7 @@ object UserService {
   def getUser(id: Int): ZIO[UserPersistence, AppError, User] = RIO.accessM(_.get.get(id))
   def createUser(id: Int, name: String): ZIO[UserPersistence, AppError, User] =
     for {
-      user   <- ZIO.fromEither(User(id, name))
+      user   <- ZIO.fromEither(User.build(id, name))
       stored <- RIO.accessM[UserPersistence](_.get.create(user))
     } yield stored
 

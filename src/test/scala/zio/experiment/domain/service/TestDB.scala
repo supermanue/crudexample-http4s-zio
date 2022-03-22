@@ -7,11 +7,11 @@ import zio.{IO, Ref, Task, ZLayer}
 
 case class TestDB(users: Ref[Vector[User]]) extends StoragePort {
   def get(id: Int): IO[AppError, User] =
-    users.get.flatMap(users => IO.require(UserNotFound(id))(Task.succeed(users.find(_.id == id))))
+    users.get.flatMap(users => IO.require(UserNotFound(id))(Task.succeed(users.find(_.id.value == id))))
   def create(user: User): IO[AppError, User] =
     users.update(_ :+ user).map(_ => user)
   def delete(id: Int): Task[Boolean] =
-    users.modify(users => true -> users.filterNot(_.id == id))
+    users.modify(users => true -> users.filterNot(_.id.value == id))
 }
 
 object TestDB {

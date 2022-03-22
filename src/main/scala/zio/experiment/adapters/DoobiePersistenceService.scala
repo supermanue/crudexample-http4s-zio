@@ -6,6 +6,7 @@ import doobie.implicits._
 import doobie.{Query0, Transactor, Update0}
 import zio._
 import zio.blocking.Blocking
+import zio.experiment.adapters.DataTypes.UserStored
 import zio.experiment.configuration
 import zio.experiment.configuration.DbConfig
 import zio.experiment.domain.model.User.User
@@ -14,6 +15,11 @@ import zio.experiment.domain.port.{StoragePort, UserPersistence}
 import zio.interop.catz._
 
 import scala.concurrent.ExecutionContext
+
+//TODO move this to somewhere cleaner
+object DataTypes {
+  case class UserStored(id: Int, name: String)
+}
 
 /**
   * Persistence Module for production using Doobie
@@ -26,14 +32,21 @@ final class DoobiePersistenceService(tnx: Transactor[Task]) extends StoragePort 
       .get(id)
       .option
       .transact(tnx)
-      .foldM(
+      .foldM( //TODO make this cleaner
         err => IO.fail(DBError(err.getMessage)),
-        maybeUser => IO.require(UserNotFound(id))(Task.succeed(maybeUser))
+        _.fold[IO[AppError, User]](IO.fail(UserNotFound(id): AppError)) { storedUser =>
+          User
+            .build(storedUser.id, storedUser.name)
+            .fold[IO[AppError, User]](
+              err => IO.fail(err),
+              u => Task.succeed(u)
+            )
+        }
       )
 
   def create(user: User): IO[AppError, User] =
     SQL
-      .create(user)
+      .create(UserStored(user.id.value, user.name.value))
       .run
       .transact(tnx)
       .foldM(err => IO.fail(DBError(err.getMessage)), _ => IO.succeed(user))
@@ -53,10 +66,10 @@ object DoobiePersistenceService {
 
   object SQL {
 
-    def get(id: Int): Query0[User] =
-      sql"""SELECT * FROM USERS WHERE ID = $id """.query[User]
+    def get(id: Int): Query0[UserStored] =
+      sql"""SELECT * FROM USERS WHERE ID = $id """.query[UserStored]
 
-    def create(user: User): Update0 =
+    def create(user: UserStored): Update0 =
       sql"""INSERT INTO USERS (id, name) VALUES (${user.id}, ${user.name})""".update
 
     def delete(id: Int): Update0 =

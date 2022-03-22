@@ -1,12 +1,13 @@
 package zio.experiment.http
 
 import io.circe.generic.auto._
-import io.circe.{Decoder, Encoder}
+import io.circe.{ Decoder, Encoder, Json }
 import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
-import org.http4s.{EntityDecoder, EntityEncoder, HttpRoutes}
+import org.http4s.{ EntityDecoder, EntityEncoder, HttpRoutes }
 import zio._
-import zio.experiment.domain.model.{DBError, UserNotFound}
+import zio.experiment.domain.model.User.User
+import zio.experiment.domain.model.{ DBError, RefinedTypeError, UserNotFound }
 import zio.experiment.domain.port.UserPersistence
 import zio.experiment.domain.service.UserService
 import zio.interop.catz._
@@ -22,6 +23,13 @@ final case class Api[R <: UserPersistence](rootUri: String) {
   implicit def circeJsonDecoder[A](implicit decoder: Decoder[A]): EntityDecoder[UserTask, A] = jsonOf[UserTask, A]
   implicit def circeJsonEncoder[A](implicit decoder: Encoder[A]): EntityEncoder[UserTask, A] =
     jsonEncoderOf[UserTask, A]
+  implicit val encodeUser: Encoder[User] = new Encoder[User] {
+    final def apply(a: User): Json =
+      Json.obj(
+        ("id", Json.fromInt(a.id.value)),
+        ("name", Json.fromString(a.name.value))
+      )
+  }
 
   val dsl: Http4sDsl[UserTask] = Http4sDsl[UserTask]
   import dsl._
@@ -46,8 +54,9 @@ final case class Api[R <: UserPersistence](rootUri: String) {
             .createUser(userInput.id, userInput.name)
             .foldM(
               {
-                case error: DBError => ServiceUnavailable(error.message)
-                case other          => InternalServerError(other.message)
+                case error: DBError          => ServiceUnavailable(error.message)
+                case error: RefinedTypeError => BadRequest(error.message)
+                case other                   => InternalServerError(other.message)
               },
               Created(_)
             )

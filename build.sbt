@@ -10,7 +10,8 @@ val PureConfigVersion      = "0.17.1"
 val ZIOInteropVersion      = "2.4.0.0"
 val Log4JVersion           = "1.7.36"
 val OrganizeImportsVersion = "0.6.0"
-val ScalaTestVersion = "3.2.11"
+val ScalaTestVersion       = "3.2.11"
+val RefinedTypesVersion    = "0.9.28"
 
 libraryDependencies ++= Seq(
   // ZIO
@@ -36,8 +37,12 @@ libraryDependencies ++= Seq(
   "org.slf4j" % "slf4j-log4j12" % Log4JVersion,
   //test
   "org.scalactic" %% "scalactic" % ScalaTestVersion,
-  "org.scalatest" %% "scalatest" % ScalaTestVersion % "test"
-
+  "org.scalatest" %% "scalatest" % ScalaTestVersion % "test",
+  //Refined types
+  "eu.timepit" %% "refined"            % RefinedTypesVersion,
+  "eu.timepit" %% "refined-cats"       % RefinedTypesVersion, // optional
+  "eu.timepit" %% "refined-eval"       % RefinedTypesVersion, // optional, JVM-only
+  "eu.timepit" %% "refined-scalacheck" % RefinedTypesVersion // optional
 )
 
 scalacOptions ++= Seq(

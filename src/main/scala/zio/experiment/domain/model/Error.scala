@@ -19,3 +19,7 @@ final case class IncorrectId(id: Int) extends AppError {
 final case class IncorrectName(name: String) extends AppError {
   val message = s"$name  must be a nonemtpy string"
 }
+
+final case class RefinedTypeError(msg: String, param: String) extends AppError {
+  val message = s" error with param $param: $msg"
+}

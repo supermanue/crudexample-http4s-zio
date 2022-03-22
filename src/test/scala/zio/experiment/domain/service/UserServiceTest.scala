@@ -8,7 +8,7 @@ import zio.test.{DefaultRunnableSpec, assert, assertM}
 
 object UserServiceTest extends DefaultRunnableSpec {
 
-  val user = User(14, "usr").getOrElse(new Exception("this is a test and should have succeeded"))
+  val user = User.build(14, "usr").getOrElse(new Exception("this is a test and should have succeeded"))
 
   def spec =
     suite("UserService unit test")(
