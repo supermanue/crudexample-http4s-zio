@@ -1,6 +1,7 @@
 # ZIO EXPERIMENT
 
-This is an experiment with ZIO + HTTP4s + DOOBIE. It can be regarded as the continuation
+This is an experiment with ZIO + HTTP4s + DOOBIE. It is fully described in a series of posts
+in [MEDIUM](https://medium.com/@supermanue). It can be regarded as the continuation
 of [THIS BLOG POST](https://medium.com/@wiemzin/zio-with-http4s-and-doobie-952fba51d089)
 which serves as the inspiration of this project.
 

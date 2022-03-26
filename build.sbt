@@ -35,9 +35,6 @@ libraryDependencies ++= Seq(
   "com.github.pureconfig" %% "pureconfig" % PureConfigVersion,
   // log4j
   "org.slf4j" % "slf4j-log4j12" % Log4JVersion,
-  //test
-  "org.scalactic" %% "scalactic" % ScalaTestVersion,
-  "org.scalatest" %% "scalatest" % ScalaTestVersion % "test",
   //Refined types
   "eu.timepit" %% "refined"            % RefinedTypesVersion,
   "eu.timepit" %% "refined-cats"       % RefinedTypesVersion, // optional
