@@ -3,15 +3,15 @@ package zio.experiment.adapters
 import cats.effect.Blocker
 import doobie.h2.H2Transactor
 import doobie.implicits._
-import doobie.{Query0, Transactor, Update0}
+import doobie.{ Query0, Transactor, Update0 }
 import zio._
 import zio.blocking.Blocking
 import zio.experiment.adapters.DataTypes.UserStored
 import zio.experiment.configuration
 import zio.experiment.configuration.DbConfig
 import zio.experiment.domain.model.User.User
-import zio.experiment.domain.model.{AppError, DBError, UserNotFound}
-import zio.experiment.domain.port.{StoragePort, UserPersistence}
+import zio.experiment.domain.model.{ AppError, DBError, UserNotFound }
+import zio.experiment.domain.port.{ StoragePort, UserPersistence }
 import zio.interop.catz._
 
 import scala.concurrent.ExecutionContext
@@ -76,20 +76,22 @@ object DoobiePersistenceService {
       sql"""DELETE FROM USERS WHERE id = $id""".update
 
     def createUsersTable: doobie.Update0 =
-      sql"""
-        CREATE TABLE USERS (
-          id   Int,
-          name VARCHAR NOT NULL
-        )
-        """.update
+      sql"""CREATE TABLE USERS (id Int, name VARCHAR NOT NULL)""".update
+
+    def dropUsersTable: doobie.Update0 =
+      sql"""DROP TABLE IF EXISTS USERS""".update
   }
 
   def createUserTable: ZIO[DBTransactor, Throwable, Unit] =
     for {
       tnx <- ZIO.service[Transactor[Task]]
-      _ <-
-        SQL.createUsersTable.run
-          .transact(tnx)
+      _   <- SQL.createUsersTable.run.transact(tnx)
+    } yield ()
+
+  def dropUserTable: ZIO[DBTransactor, Throwable, Unit] =
+    for {
+      tnx <- ZIO.service[Transactor[Task]]
+      _   <- SQL.dropUsersTable.run.transact(tnx)
     } yield ()
 
   def mkTransactor(
