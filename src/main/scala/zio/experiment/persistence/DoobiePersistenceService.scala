@@ -1,17 +1,17 @@
-package zio.experiment.adapters
+package zio.experiment.persistence
 
 import cats.effect.Blocker
 import doobie.h2.H2Transactor
 import doobie.implicits._
-import doobie.{ Query0, Transactor, Update0 }
+import doobie.{Query0, Transactor, Update0}
 import zio._
 import zio.blocking.Blocking
-import zio.experiment.adapters.DataTypes.UserStored
 import zio.experiment.configuration
 import zio.experiment.configuration.DbConfig
 import zio.experiment.domain.model.User.User
-import zio.experiment.domain.model.{ AppError, DBError, UserNotFound }
-import zio.experiment.domain.port.{ StoragePort, UserPersistence }
+import zio.experiment.domain.model.{AppError, DBError, UserNotFound}
+import zio.experiment.domain.port.{StoragePort, UserPersistence}
+import zio.experiment.persistence.DataTypes.UserStored
 import zio.interop.catz._
 
 import scala.concurrent.ExecutionContext

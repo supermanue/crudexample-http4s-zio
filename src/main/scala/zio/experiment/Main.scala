@@ -9,10 +9,10 @@ import zio._
 import zio.blocking.Blocking
 import zio.clock.Clock
 import zio.console.putStrLn
-import zio.experiment.adapters.{DBTransactor, DoobiePersistenceService}
 import zio.experiment.configuration.Configuration
 import zio.experiment.domain.port.UserPersistence
 import zio.experiment.http.Api
+import zio.experiment.persistence.{DBTransactor, DoobiePersistenceService}
 import zio.interop.catz._
 
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}

@@ -1,11 +1,11 @@
-package zio.experiment.adapters
+package zio.experiment.persistence
 
 import zio.blocking.Blocking
-import zio.experiment.adapters.DoobiePersistenceService.{createUserTable, dropUserTable}
 import zio.experiment.configuration.Configuration
 import zio.experiment.domain.model.User.User
 import zio.experiment.domain.model.UserNotFound
 import zio.experiment.domain.port.UserPersistence
+import zio.experiment.persistence.DoobiePersistenceService.{createUserTable, dropUserTable}
 import zio.test.Assertion._
 import zio.test.TestAspect.sequential
 import zio.test._
@@ -20,10 +20,10 @@ object DoobiePersistenceServiceTest extends DefaultRunnableSpec {
     suite("DoobiePersistenceService unit test")(
       testM("DELETE and DROP should work") {
         for {
-          _        <- dropUserTable
-          _        <- createUserTable
-          _        <- dropUserTable
-          _        <- createUserTable
+          _ <- dropUserTable
+          _ <- createUserTable
+          _ <- dropUserTable
+          _ <- createUserTable
         } yield assert(true)(isTrue)
       },
       testM("GET should return a UserNotFound if the element does not exist") {
@@ -41,11 +41,10 @@ object DoobiePersistenceServiceTest extends DefaultRunnableSpec {
           found  <- RIO.accessM[UserPersistence](_.get.get(user.id.value)).either
         } yield assert(stored)(isRight(equalTo(user))) && assert(found)(isRight(equalTo(user)))
       }
-    )
-      .provideSomeLayer[TestEnvironment](
-      (Configuration.live >+> Blocking.live >+> DoobiePersistenceService.transactorLive >+> DoobiePersistenceService.live)
-        .mapError(_ => TestFailure.Runtime(Cause.die(new Exception("die"))))
-    )@@ sequential
+    ).provideSomeLayer[TestEnvironment](
+        (Configuration.live >+> Blocking.live >+> DoobiePersistenceService.transactorLive >+> DoobiePersistenceService.live)
+          .mapError(_ => TestFailure.Runtime(Cause.die(new Exception("die"))))
+      ) @@ sequential
 
   //TODO Add tests for max. string length in the "name" field.
   //TODO add tests for max. and min. size
