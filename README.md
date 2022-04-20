@@ -6,7 +6,7 @@ of [THIS BLOG POST](https://medium.com/@wiemzin/zio-with-http4s-and-doobie-952fb
 which serves as the inspiration of this project.
 
 The basic idea is to have a server running with that software stack. I want to make it as production-like as possible,
-so I have refactored the code adding some extra layers.
+so I have refactored the original code adding some extra layers and testing.
 
 ## Intro
 
@@ -26,11 +26,11 @@ curl --location --request POST 'localhost:8083/' \
 curl --location --request GET 'localhost:8083/1'
 ```
 
-```
+```shell
 curl --location --request DELETE 'localhost:8083/1'
 ```
 
-## Architecture
+## Architecture and code designn
 
 My proposed architecture is:
 
@@ -38,13 +38,19 @@ My proposed architecture is:
 - HTTP: package with the HTTP server
 - DOMAIN: package with the Domain logic
     - Model:
-        - objects to be managed by the domain
+        - objects to be managed by the domain.
+            - For an in-depth description of the employed data types
+              see [Road To ZIO\[n\]: chapter 2, Types in the Domain layer](https://medium.com/@supermanue/road-to-zio-n-chapter-2-types-in-the-domain-layer-965c7887f1f2)
         - Errors: this is how we model the Errors in the application and deal with them in a functional way. As it is a
           small code we are keeping all in here instead of spreading them through the different layers
+            - for a description of the error management
+              see [Road to ZIO(n): chapter 1, the basics](https://medium.com/@supermanue/road-to-zio-n-chapter-1-e7e733e59ca4)
     - Service: business logic regarding the domain objects
     - Ports: interfaces defining the desired I/O
-- ADAPTERS: package with implementation for the ports
-- CONFIGURATION: configuration stuff
+- ADAPTER: package with implementation for the ports
+    - this is described
+      in [Road to ZIO\[n\]: Chapter 4, the Persistence layer](https://medium.com/@supermanue/road-to-zio-n-chapter-4-the-persistence-layer-f268339350c8)
+- CONFIGURATION: boring configuration stuff
 
 ## Storage
 
@@ -52,17 +58,36 @@ The project uses a H2 in-memory DB to store Users.
 
 ## Testing
 
-Note: this is still a work in project, so testing is not complete. I'm defining my final objective here.
-
 Testing is performed in different layers:
 
 - Domain: unit tests for the services residing in the Service package.
-    - We are using a mock DB in here -just an array- to isolate responsibilities
+    - I am using a mock DB in here -just an array- to isolate responsibilities
+    - I am using property-based testing for the model whenever possible
+    - For a full description of the test
+      see [Road to ZIO\[N\]: chapter 3, testing the Domain](https://medium.com/@supermanue/road-to-zio-n-chapter-3-testing-the-domain-1499ca157dc4)
 - Adapters: unit tests for the adapters, making sure that they implement correctly the desired functionalities.
-- Integration tests. here we start the full application and use a Scala client to attack the API. This way we verify
-  that:
+    - Also described in section 4
+- There are missing tests described in the TODO section
+
+## TODO
+
+This is an ongoing process and it is still not finished. Some missing sections are:
+
+- Clean (probably with a full refactor) the HTTP layer. This will come in section 5 of the Road to ZIO\[n\].
+
+- Full testing of the HTTP layer with integration tests. I will start the full application and use a Scala client to
+  attack the API. This way we verify that:
     - the wiring is correct and we are able to perform CRUD operations
-    - the "http" layer is correct, and the server is returning the correct HTTP codes both in the case of correct
+    - the HTTP layer is correct, and the server is returning the correct HTTP codes both in the case of correct
       executions and failures
 
+- Scalability tests
+    - attack the API with something like [Gatling](https://gatling.io/) and see how ZIO+HTTP4S+DOOBIE behaves under
+      heavy loads
 
+- Kafka Producer/Consumer
+    - I want to test how to write and read Kafka stuff with ZIO
+
+- Update to ZIO2
+    - while this tutorial has been writen, a new version of ZIO has been released. It is supposed to simplify most of
+      the pain points, so it is definitely worth to take a deep look at it.
