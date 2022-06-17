@@ -1,19 +1,18 @@
 package zio.experiment.http
 
 import io.circe.generic.auto._
-import io.circe.{ Decoder, Encoder, Json }
+import io.circe.{Decoder, Encoder, Json}
 import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
-import org.http4s.{ EntityDecoder, EntityEncoder, HttpRoutes }
+import org.http4s.{EntityDecoder, EntityEncoder, HttpRoutes}
 import zio._
 import zio.experiment.domain.model.User.User
-import zio.experiment.domain.model.{ DBError, RefinedTypeError, UserNotFound }
-import zio.experiment.domain.port.UserPersistence
+import zio.experiment.domain.model.{DBError, RefinedTypeError, UserNotFound}
+import zio.experiment.domain.port.UserRepository.UserRepositoryEnv
 import zio.experiment.domain.service.UserService
 import zio.interop.catz._
 
-//TODO do we really want/need to have the UserPersistence injected here? Is it required for the Domain or can we inject it somehow differently?
-final case class Api[R <: UserPersistence](rootUri: String) {
+final case class Api[R <: UserRepositoryEnv](rootUri: String) {
 
   type UserTask[A] = RIO[R, A]
 

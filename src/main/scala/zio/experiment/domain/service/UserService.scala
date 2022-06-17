@@ -2,16 +2,16 @@ package zio.experiment.domain.service
 
 import zio.experiment.domain.model.AppError
 import zio.experiment.domain.model.User.User
-import zio.experiment.domain.port.UserPersistence
+import zio.experiment.domain.port.UserRepository
+import zio.experiment.domain.port.UserRepository.UserRepositoryEnv
 import zio.{RIO, ZIO}
 
 object UserService {
-  def getUser(id: Int): ZIO[UserPersistence, AppError, User] = RIO.accessM(_.get.get(id))
-  def createUser(id: Int, name: String): ZIO[UserPersistence, AppError, User] =
+  def getUser(id: Int): ZIO[UserRepositoryEnv, AppError, User] = UserRepository.get(id)
+  def createUser(id: Int, name: String): ZIO[UserRepositoryEnv, AppError, User] =
     for {
       user   <- ZIO.fromEither(User.build(id, name))
-      stored <- RIO.accessM[UserPersistence](_.get.create(user))
+      stored <- UserRepository.create(user)
     } yield stored
-
-  def deleteUser(id: Int): RIO[UserPersistence, Boolean] = RIO.accessM(_.get.delete(id))
+  def deleteUser(id: Int): RIO[UserRepositoryEnv, Boolean] = UserRepository.delete(id)
 }

@@ -2,16 +2,16 @@ package zio.experiment.adapter.service
 
 import zio.blocking.Blocking
 import zio.experiment.adapter.DBTransactor
-import zio.experiment.adapter.service.DoobiePersistenceService.{ createUserTable, dropUserTable }
+import zio.experiment.adapter.service.DoobiePersistenceService.{createUserTable, dropUserTable}
 import zio.experiment.configuration.Configuration
 import zio.experiment.domain.model.User.User
 import zio.experiment.domain.model.UserNotFound
-import zio.experiment.domain.port.UserPersistence
+import zio.experiment.domain.port.UserRepository
 import zio.test.Assertion._
 import zio.test.TestAspect.sequential
 import zio.test.environment.TestEnvironment
-import zio.test.{ DefaultRunnableSpec, TestFailure, ZSpec, assert }
-import zio.{ Cause, RIO, ZIO }
+import zio.test.{DefaultRunnableSpec, TestFailure, ZSpec, assert}
+import zio.{Cause, ZIO}
 
 object DoobiePersistenceServiceTest extends DefaultRunnableSpec {
 
@@ -31,14 +31,14 @@ object DoobiePersistenceServiceTest extends DefaultRunnableSpec {
       testM("GET should return a UserNotFound if the element does not exist") {
         for {
           _        <- beforeEach
-          notFound <- RIO.accessM[UserPersistence](_.get.get(100).either)
+          notFound <- UserRepository.get(100).either
         } yield assert(notFound.swap.getOrElse(anything))(isSubtype[UserNotFound](anything))
       },
       testM("GET should return the user if it exists") {
         for {
           _      <- beforeEach
-          stored <- RIO.accessM[UserPersistence](_.get.create(user)).either
-          found  <- RIO.accessM[UserPersistence](_.get.get(user.id.value)).either
+          stored <- UserRepository.create(user).either
+          found  <- UserRepository.get(user.id.value).either
         } yield assert(stored)(isRight(equalTo(user))) && assert(found)(isRight(equalTo(user)))
       }
     ).provideSomeLayer[TestEnvironment](

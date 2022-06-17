@@ -2,10 +2,11 @@ package zio.experiment.domain.service
 
 import zio.experiment.domain.model.User.User
 import zio.experiment.domain.model.{AppError, UserNotFound}
-import zio.experiment.domain.port.{StoragePort, UserPersistence}
+import zio.experiment.domain.port.UserRepository
+import zio.experiment.domain.port.UserRepository.UserRepositoryEnv
 import zio.{IO, Ref, Task, ZLayer}
 
-case class TestDB(users: Ref[Vector[User]]) extends StoragePort {
+case class TestDB(users: Ref[Vector[User]]) extends UserRepository.Service {
   def get(id: Int): IO[AppError, User] =
     users.get.flatMap(users => IO.require(UserNotFound(id))(Task.succeed(users.find(_.id.value == id))))
   def create(user: User): IO[AppError, User] =
@@ -15,7 +16,7 @@ case class TestDB(users: Ref[Vector[User]]) extends StoragePort {
 }
 
 object TestDB {
-  val layer: ZLayer[Any, Nothing, UserPersistence] =
+  val layer: ZLayer[Any, Nothing, UserRepositoryEnv] =
     ZLayer.fromEffect(Ref.make(Vector.empty[User]).map(TestDB(_)))
 
 }

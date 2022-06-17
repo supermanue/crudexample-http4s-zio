@@ -12,7 +12,8 @@ import zio.experiment.configuration
 import zio.experiment.configuration.DbConfig
 import zio.experiment.domain.model.User.User
 import zio.experiment.domain.model.{AppError, DBError, UserNotFound}
-import zio.experiment.domain.port.{StoragePort, UserPersistence}
+import zio.experiment.domain.port.UserRepository
+import zio.experiment.domain.port.UserRepository.UserRepositoryEnv
 import zio.interop.catz._
 
 import scala.concurrent.ExecutionContext
@@ -20,7 +21,7 @@ import scala.concurrent.ExecutionContext
 /**
   * Persistence Module for production using Doobie
   */
-final class DoobiePersistenceService(tnx: Transactor[Task]) extends StoragePort {
+final class DoobiePersistenceService(tnx: Transactor[Task]) extends UserRepository.Service {
   import DoobiePersistenceService._
 
   override def get(id: Int): IO[AppError, User] =
@@ -103,7 +104,7 @@ object DoobiePersistenceService {
       transactor <- mkTransactor(config, connectEC, blockingEC)
     } yield transactor)
 
-  val live: ZLayer[DBTransactor, Throwable, UserPersistence] =
+  val live: ZLayer[DBTransactor, Throwable, UserRepositoryEnv] =
     ZLayer.fromService(new DoobiePersistenceService(_))
 
 }
