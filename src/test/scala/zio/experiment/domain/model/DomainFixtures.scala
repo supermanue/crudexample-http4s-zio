@@ -8,7 +8,7 @@ import zio.test.{ Gen, Sized }
 trait DomainFixtures {
 
   def positiveIntGen: Gen[Random, Int]                  = anyInt.map(num => math.abs(num) + 1)
-  def nonemptyStringGen: Gen[Random with Sized, String] = (anyASCIIString <*> anyChar).map(elems => elems._1 + elems._2)
+  def nonemptyStringGen: Gen[Random with Sized, String] = (alphaNumericString <*> alphaNumericChar).map(elems => elems._1 + elems._2)
 
   def userGen: Gen[Random with Sized, User] =
     (positiveIntGen <*> nonemptyStringGen).map(elems =>

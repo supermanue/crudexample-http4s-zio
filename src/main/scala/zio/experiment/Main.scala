@@ -12,7 +12,7 @@ import zio.console.putStrLn
 import zio.experiment.adapter.DBTransactor
 import zio.experiment.adapter.service.DoobiePersistenceService
 import zio.experiment.configuration.Configuration
-import zio.experiment.domain.port.UserPersistence
+import zio.experiment.domain.port.UserRepository.UserRepositoryEnv
 import zio.experiment.http.Api
 import zio.interop.catz._
 
@@ -20,35 +20,33 @@ import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
 
 object Main extends App {
   val ec: ExecutionContextExecutor = ExecutionContext.global
-  type AppEnvironment = Configuration with Clock with DBTransactor with UserPersistence
+  type AppEnvironment = Configuration with Clock with DBTransactor with UserRepositoryEnv
 
   type AppTask[A] = RIO[AppEnvironment, A]
 
   val appEnvironment =
     Configuration.live >+> Blocking.live >+> DoobiePersistenceService.transactorLive >+> DoobiePersistenceService.live
 
-  override def run(args: List[String]): ZIO[ZEnv, Nothing, ExitCode] = {
-    val program: ZIO[AppEnvironment, Throwable, Unit] =
-      for {
-        _   <- DoobiePersistenceService.createUserTable
-        api <- configuration.apiConfig
-        httpApp = Router[AppTask](
-          "/" -> Api(s"${api.endpoint}/").route
-        ).orNotFound
+  val program: ZIO[AppEnvironment, Throwable, Unit] =
+    for {
+      _ <- DoobiePersistenceService.createUserTable
+      api <- configuration.apiConfig
+      httpApp = Router[AppTask](
+        "/" -> Api(s"${api.endpoint}/").route
+      ).orNotFound
+      server <- ZIO.runtime[AppEnvironment].flatMap { implicit rts =>
+        BlazeServerBuilder[AppTask](ec)
+          .bindHttp(api.port, api.endpoint)
+          .withHttpApp(CORS(httpApp))
+          .serve
+          .compile[AppTask, AppTask, CatsExitCode]
+          .drain
+      }
+    } yield server
 
-        server <- ZIO.runtime[AppEnvironment].flatMap { implicit rts =>
-          BlazeServerBuilder[AppTask](ec)
-            .bindHttp(api.port, api.endpoint)
-            .withHttpApp(CORS(httpApp))
-            .serve
-            .compile[AppTask, AppTask, CatsExitCode]
-            .drain
-        }
-      } yield server
-
+  override def run(args: List[String]): ZIO[ZEnv, Nothing, ExitCode] =
     program
       .provideSomeLayer[ZEnv](appEnvironment)
       .tapError(err => putStrLn(s"Execution failed with: $err"))
       .exitCode
-  }
 }
