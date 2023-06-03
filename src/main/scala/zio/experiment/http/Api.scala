@@ -1,34 +1,26 @@
 package zio.experiment.http
 
 import io.circe.generic.auto._
-import io.circe.{Decoder, Encoder, Json}
+import io.circe.{Decoder, Encoder}
 import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.{EntityDecoder, EntityEncoder, HttpRoutes}
 import zio._
-import zio.experiment.domain.model.User.User
 import zio.experiment.domain.model.{DBError, RefinedTypeError, UserNotFound}
 import zio.experiment.domain.port.UserRepository.UserRepositoryEnv
 import zio.experiment.domain.service.UserService
+import zio.experiment.http.model.UserInput
+import zio.experiment.http.model.UserInput.encodeUser
 import zio.interop.catz._
 
+//FIXME this restriction here should be removed, the API converted to an object and use ZLayers for dependency injection
 final case class Api[R <: UserRepositoryEnv](rootUri: String) {
 
   type UserTask[A] = RIO[R, A]
 
-  case class UserInput(id: Int, name: String) //TODO this is a bit weird here. Also id should be returned by Storage
-
-  //TODO take this to a separate class
   implicit def circeJsonDecoder[A](implicit decoder: Decoder[A]): EntityDecoder[UserTask, A] = jsonOf[UserTask, A]
   implicit def circeJsonEncoder[A](implicit decoder: Encoder[A]): EntityEncoder[UserTask, A] =
     jsonEncoderOf[UserTask, A]
-  implicit val encodeUser: Encoder[User] = new Encoder[User] {
-    final def apply(a: User): Json =
-      Json.obj(
-        ("id", Json.fromInt(a.id.value)),
-        ("name", Json.fromString(a.name.value))
-      )
-  }
 
   val dsl: Http4sDsl[UserTask] = Http4sDsl[UserTask]
   import dsl._

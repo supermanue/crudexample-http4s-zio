@@ -67,19 +67,16 @@ Testing is performed in different layers:
       see [Road to ZIO\[N\]: chapter 3, testing the Domain](https://medium.com/@supermanue/road-to-zio-n-chapter-3-testing-the-domain-1499ca157dc4)
 - Adapters: unit tests for the adapters, making sure that they implement correctly the desired functionalities.
     - Also described in section 4
-- There are missing tests described in the TODO section
-
+- Full testing of the HTTP layer with integration tests. This way we verify that:
+    - the wiring is correct and we are able to perform CRUD operations
+    - the HTTP layer is correct, and the server is returning the correct HTTP codes both in the case of correct
+      executions and failures
+    - See [Road to ZIO\[n\]: Integration Tests in Scala with ZIO+HTTP4S](https://medium.com/p/583b45438d03)
 ## TODO
 
 This is an ongoing process and it is still not finished. Some missing sections are:
 
-- Clean (probably with a full refactor) the HTTP layer. This will come in section 5 of the Road to ZIO\[n\].
-
-- Full testing of the HTTP layer with integration tests. I will start the full application and use a Scala client to
-  attack the API. This way we verify that:
-    - the wiring is correct and we are able to perform CRUD operations
-    - the HTTP layer is correct, and the server is returning the correct HTTP codes both in the case of correct
-      executions and failures
+- Clean (probably with a full refactor) the HTTP layer.
 
 - Scalability tests
     - attack the API with something like [Gatling](https://gatling.io/) and see how ZIO+HTTP4S+DOOBIE behaves under
@@ -89,5 +86,5 @@ This is an ongoing process and it is still not finished. Some missing sections a
     - I want to test how to write and read Kafka stuff with ZIO
 
 - Update to ZIO2
-    - while this tutorial has been writen, a new version of ZIO has been released. It is supposed to simplify most of
+    - while this tutorial has been written, a new version of ZIO has been released. It is supposed to simplify most of
       the pain points, so it is definitely worth to take a deep look at it.
